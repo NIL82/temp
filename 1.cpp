@@ -186,7 +186,7 @@ int stack<T> :: posteval(string postr)
 }
 
 template<class T>
-int stack<T> :: evaluate(int ch, int op1, int op2)
+int stack<T> :: evaluate(int ch, int op2, int op1)
 {
 	if(ch == '+')
 		return op1+op2;
