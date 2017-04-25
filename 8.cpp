@@ -1,159 +1,161 @@
-#include <iostream>
-#include<stdlib.h>
-#include<stdio.h>
-using namespace std;
+#include<iostream>
+#include<stdlib.h>;
 #define INF 999
+#define MAX 10
+using namespace std;
 
-class graph
+class Graph
 {
-	int n,e;
-	int g[10][10];
-	int u,v,w,nn;						// nn is used for next node
-	int visited[10],dist[10],pred[10];
-	public:
-		void create();
-		void print();
-		void dj();
-		void display();
-		void  init()
+	string names[MAX];
+	int nodes, edges,cost[MAX][MAX], distance[MAX], from[MAX], visited[MAX],source;
+
+public:
+	Graph()
+	{
+		edges = 1;
+		source=0;
+		nodes=0;
+		for(int i=0; i<MAX; i++)
 		{
-			int i,j;
-			for(i=0;i<n;i++)
+			for(int j=0; j<MAX; j++)
 			{
-				for(j=0;j<n;j++)
-				{
-					g[i][j]=INF;
-				}
+				if(i==j)
+				    cost[i][j] = 0;
+				else
+					cost[i][j] = INF;
 			}
 		}
+	}
+	void initialize();
+	void accept();
+	void display();
+	void dijkstra();
+	int position(string);
 };
-
-void graph::create()
+void Graph::initialize()
 {
 	int i;
-	cout<<"\nEnter the no of vertices: ";
-	cin>>n;
-	cout<<"\nEnter the no of edges: ";
-	cin>>e;
-	init();
-	for(i=0;i<e;i++)
+	for(i=0; i<nodes; i++)
 	{
-		cout<<"\nEnter the starting vertex: ";
-		cin>>u;
-		cout<<"Enter the ending vertex: ";
-		cin>>v;
-		cout<<"Enter the weight: ";
-		cin>>w;
-		g[u][v]=g[v][u]=w;
+		from[i] = source;
+		visited[i] = 0;
+		distance[i] = cost[source][i];
+	}
+	visited[source] = 1;
+	distance[source] = 0;
+}
+void Graph::accept()
+{
+	int i, j,k, wt;
+	string start, end;
+	cout<<"\nEnter no. of vertex : ";
+	cin>>nodes;
+	cout<<"\nEnter names of vertex: ";
+	for(int i=0; i<nodes; i++)
+	{
+		cin>>names[i];
+	}
+	cout<<"\nEnter no. of edges: ";
+	cin>>edges;
+	for(i=0; i<edges; i++)
+	{
+		cout<<"\nEnter source destination and weight: ";
+		cin>>start>>end;
+		cout<<"\nEnter weight: ";
+		cin>>wt;
+
+		j = position(start);
+		k = position(end);
+
+		cost[j][k] = wt;
+		cost[k][j] = wt;
 	}
 }
-
-void graph::print()
+int Graph::position(string s)
 {
-	cout<<"\nAdjacency matrix\n------------------\n";
-	int i,j;
-	for(i=0;i<n;i++)
+	int i=0;
+	for(i=0; i<nodes; i++)
+		if(names[i] == s)
+			return i;
+
+	cout<<"!Vertex not found!";
+}
+void Graph::display()
+{
+	int i, j;
+	for(i=0; i<nodes; i++)
+		cout<<"\t"<<names[i];
+	for(i=0; i<nodes; i++)
 	{
-		for(j=0;j<n;j++)
-		{
-			cout<<"  "<<g[i][j];
-		}
-		cout<<"\n";
+		cout<<"\n"<<names[i];
+		for(j=0; j<nodes; j++)
+				cout<<"\t"<<cost[i][j];
 	}
 }
-
-void graph:: dj()
+void Graph::dijkstra()
 {
-
-	int i,k,min;
-	cout<<"\nEnter starting vertex: ";
-	cin>>u;
-	for(i=0;i<n;i++)
+	string s;
+	int mindistance, mincost=0, u, v, i,j;
+	cout<<"\nEnter source vertex for Dijkstra: ";
+	cin>>s;
+	source = position(s);
+	while(source<0 || source>nodes-1)
 	{
-		visited[i]=0;
-		dist[i]=g[u][i];
-		pred[i]=u;
+		cout<<"\nWrong vertex, renter source vertex for dijkstra: ";
+		cin>>s;
+		source = position(s);
 	}
-	visited[u]=1;
-	k=1;
-	while(k<n-1)
+	initialize();
+	edges=1;
+	while(edges<nodes-1)
 	{
-		min=INF;
-		for(i=0;i<n;i++)
+		mindistance = INF;
+
+		for(i=0; i<nodes; i++)
 		{
-			if(!visited[i]&&dist[i]<min)
+			while(visited[i] == 0 && distance[i]<mindistance)
 			{
-				min=dist[i];
-				nn=i;
-
-
+				mindistance = distance[i];
+				v = i;
 			}
 		}
-		visited[nn]=1;
-		for(i=0;i<n;i++)
+		visited[v] = 1;
+
+		for(i=0; i<nodes; i++)
 		{
-			if(!visited[i]&& (min + g[nn][i])<dist[i])
+			if(visited[i] == 0 && distance[i]>(cost[i][v]+mindistance))
 			{
-				dist[i]=min +g[nn][i];
-				pred[i]=nn;
+				distance[i] = cost[i][v]+mindistance;
+				from[i] = v;
 			}
 		}
-		k++;
+		edges++;
 	}
-
-}
-
-void graph::display()
-{
-	int i,j;
-	for(i=0;i<n;i++)
+	for(i=0;i<nodes;i++)
 	{
-		if(i!=u)
+		if(i!=source)
 		{
-			cout<<"\n\nDistance of vertex "<<i<<"="<<dist[i];
-			cout<<"\nPath ="<<i;
+			cout<<"\n\nDistance of vertex "<<names[i]<<"="<<distance[i];
+			cout<<"\nPath ="<<names[i];
 			j=i;
 			do
 			{
-				j=pred[j];
-				cout<<"<-"<<j;
+				j=from[j];
+				cout<<"<-"<<names[j];
 
-			}while(j!=u);
+			}while(j!=source);
 		}
 	}
 }
 
-
 int main()
 {
+	Graph g;
+	int cost;
 
-	graph g;		//object of class graph
-	int ch;
-	cout<<"\n*****DIJKSTRA'S ALGORITHM***** ";
-	cout<<"\n*****MENU*****";
-	do
-	{
-		cout<<"\n1.Create\n2.Print\n3.Dijikstra's Algorithm\n4.Exit";
-		cout<<"\nEnter your choice:";
-		cin>>ch;
-		switch(ch)
-		{
-			case 1:
-				g.create();
-				break;
-
-			case 2: g.print();
-				break;
-
-			case 3: g.dj();
-				cout<<"\nDijikstra's Algorithm-------> ";
-				g.display();
-				break;
-
-			case 4:	exit(0);
-
-			default: cout<<"\nWrong choice !";
-		}
-
-	}while(1);
+	g.accept();
+	g.display();
+	g.dijkstra();
+	return 0;
 }
+
