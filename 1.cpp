@@ -1,400 +1,362 @@
 #include<iostream>
-#include<string>
+#include<stdlib.h>
 #include<cmath>
 
 using namespace std;
 
 template<class T>
-class stack {
+class Stack
+{
 	struct node
 	{
 		T data;
 		node *next;
 	};
-
 	node *top;
-	public:
-		stack()
-		{
-			top = NULL;
-		}
-		~stack()
-		{
-			node *temp;
-			while(top != NULL)
-			{
-				temp = top;
-				top = top->next;
-				delete temp;
-			}
-		}
-		void push(T x);
-		void display();
-		T pop();
-		bool isempty();
-		T stacktop();
-		bool isfull();
-		string intopost(string);
-		string intopre(string);
-		int posteval(string);
-		int evaluate(int, int, int);
-		int preeval(string);
+public:
+	Stack()
+	{
+		top = NULL;
+	}
+	bool isfull();
+	bool isempty();
+	void push(T);
+	T pop();
+	void display();
+	string intopost(string);
+	string intopre(string);
+	int evaluate(char,int,int);
+	int precedence(char);
+	int posteval(string);
+	int preeval(string);
 };
-template<class T>
-bool stack<T> :: isempty()
-{
-	if(top == NULL)
-		return true;
-	return false;
-}
-template<class T>
-bool stack<T> :: isfull()
+template <class T>
+bool Stack<T> :: isfull()
 {
 	node *temp = new node;
-	if(temp != NULL)
+	if(temp!=NULL)
 	{
 		delete temp;
 		return false;
 	}
 	return true;
 }
-
-template<class T>
-void stack<T>:: push(T x)
+template <class T>
+bool Stack<T> :: isempty()
+{
+	if(top == NULL)
+		return true;
+	return false;
+}
+template <class T>
+void Stack<T> :: push(T d)
 {
 	if(isfull())
-		cout<<"\n Stack is full";
+		cout<<"\nStack Full";
 	else
 	{
-		node *newptr;
-		newptr = new node;
-		newptr->data = x;
-		newptr->next = top;
-		top = newptr;
+		node *newnode = new node;
+		newnode->data =  d;
+		newnode->next = top;
+		top = newnode;
 	}
 }
-
-template<class T>
-void stack<T> :: display()
+template <class T>
+T Stack<T> :: pop()
 {
-	node *p = top;
-	do
+	if(isempty())
 	{
-		cout << p->data << " <- ";
-		p = p->next;
-	}while(p !=  NULL);
+		cout<<"\nStck empty! Underflow";
+	}
+	else
+	{
+		T val;
+		node *temp;
+		temp = top;
+		val = top->data;
+		top = temp->next;
+		delete temp;
+		return val;
+	}
 }
-
-template<class T>
-T stack<T> :: pop()
+template <class T>
+void Stack<T> :: display()
 {
-	T val;
-	node *popptr;
-	popptr = top;
-	top = top->next;
-	val = popptr->data;
-	delete popptr;
-	return val;
+	node *temp;
+	temp = top;
+	while(temp!=NULL)
+	{
+		cout<<temp->data<<" <- ";
+		temp = temp->next;
+	}
 }
-
-template<class T>
-T stack<T> :: stacktop()
+template <class T>
+string Stack<T> :: intopost(string instr)
 {
-	T val = top->data;
-	return val;
-}
-
-template<class T>
-int precedence(T ch)
-{
-	if(ch=='(')
-       return 0;
-	if(ch=='+' || ch=='-')
-		return 1;
-	if(ch=='*' || ch=='/' || ch=='%')
-       return 2;
-    return 3;
-}
-
-template<class T>
-string stack<T> :: intopost(string instr)
-{
-	string postr("");
-	stack <char> st;
-	int i;
-	T ch, op;
-	for(i=0; i<instr.length(); i++)
+	T op,  ch;
+	Stack<char> st;
+	string poststr("");
+	for(int i=0; i<instr.length(); i++)
 	{
 		ch = instr.at(i);
-		if((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z'))
-		{
-			postr.append(1,ch);
-		}
-		else
-		{
-			if(ch=='(')
-				st.push(ch);
-			else if(ch==')')
-			{
-				while((op=st.pop())!='(')
-			    {
-					postr.append(1,op);
-			    }
-			}
-			else if((st.isempty()!= true) && precedence(ch)<=precedence(st.stacktop()))
-			{
-				op=st.pop();
-			    postr.append(1,op);
-			}
-			if(ch!='('&&ch!=')')
-				st.push(ch);
-		}
-	}
-	while(st.isempty()!=true)
-	{
-		op=st.pop();
-		postr.append(1,op);
-	}
-	return postr;
-}
-
-template<class T>
-int stack<T> :: posteval(string postr)
-{
-	stack <char> st;
-	int poval, i, val, op1, op2;
-	char ch;
-	for(i=0; i<postr.length(); i++)
-	{
-		ch = postr.at(i);
 		if(isalnum(ch))
 		{
-			cout<<"\n Enter Value for ( "<<ch<<" ) ";
-		    cin>>val;
-		    st.push(val);
+			poststr.append(1, ch);
 		}
 		else
 		{
-			op1=st.pop();
-		    op2=st.pop();
-		    poval=evaluate(ch,op1,op2);
-		    st.push(poval);
+			if(ch == '(')
+				st.push(ch);
+			else if(ch == ')')
+			{
+				while((op = st.pop()) != '(')
+				{
+					poststr.append(1,op);
+				}
+			}
+			else if((st.isempty()!=true) && precedence(ch)<=precedence(st.top->data))
+			{
+				op = st.pop();
+				poststr.append(1,op);
+			}
+			if(ch != '(' && ch != ')')
+				st.push(ch);
 		}
 	}
-	poval=st.pop();
-	return poval;
+	while(st.isempty() != true )
+	{
+		op = st.pop();
+		poststr.append(1,op);
+	}
+	return poststr;
 }
-
-template<class T>
-int stack<T> :: evaluate(int ch, int op2, int op1)
+template <class T>
+string Stack<T> :: intopre(string instr)
 {
-	if(ch == '+')
-		return op1+op2;
-	if(ch == '-')
-		return op1-op2;
-	if(ch == '*')
-		return op1*op2;
-	if(ch == '/')
-		return op1/op2;
-	if(ch == '%')
-		return op1%op2;
-	if(ch == '^')
-		return pow(op1, op2);
-}
-
-template<class T>
-string stack<T> :: intopre(string instr)
-{
-	string prestr, revstr, postr;
+	string poststr, revstr, prestr;
+	Stack<char> st;
 	char ch;
-	stack <char> st;
-	int i;
-	for(i=0; i<instr.length(); i++)
-		st.push(instr.at(i));
-	while(st.isempty() != true)
+	for(int i=0; i<instr.length(); i++)
+	{
+			st.push(instr.at(i));
+	}
+	while(st.isempty()!= true)
 	{
 		ch = st.pop();
 		if(ch == '(')
-			revstr.append(1, ')');
-		else if(ch == ')')
-			revstr.append(1, '(');
+			revstr.append(1,')');
+		if(ch == ')')
+			revstr.append(1,'(');
 		else
-			revstr.append(1, ch);
+			revstr.append(1,ch);
 	}
-	postr = st.intopost(revstr);
-
-	for(i=0; i<postr.length(); i++)
-		st.push(postr.at(i));
-	while(st.isempty() != true)
+	poststr = st.intopost(revstr);
+	for(int i=0; i<poststr.length(); i++)
+	{
+		st.push(poststr.at(i));
+	}
+	while(st.isempty()!=true)
 		prestr.append(1, st.pop());
 	return prestr;
 }
-
-template<class T>
-int stack<T> :: preeval(string prestr)
+template <class T>
+int Stack<T> :: evaluate(char op, int op2, int op1)
 {
-	int i, preval;
-	string postr;
-	stack <char> st;
-	for(i=0; i<prestr.length(); i++)
-		st.push(prestr.at(i));
-	while(st.isempty() != true)
+	if(op == '+')
+		return (op1+op2);
+	if(op == '-')
+		return (op1-op2);
+	if(op == '*')
+		return (op1*op2);
+	if(op == '/')
+		return (op1/op2);
+	if(op == '%')
+		return (op1%op2);
+	if(op == '^')
+		return pow(op1,op2);
+}
+template <class T>
+int Stack<T> :: precedence(char ch)
+{
+	if(ch == '(')
+		return 0;
+	if(ch == '+' || ch == '-')
+		return 1;
+	if(ch == '*' || ch == '/' || ch == '%')
+		return 2;
+	return 3;
+}
+template <class T>
+int Stack<T> :: posteval(string poststr)
+{
+	Stack<int> st;
+	int op1, op2, result, val;
+	char ch;
+
+	for(int i=0; i<poststr.length(); i++)
 	{
-		postr.append(1, st.pop());
+		ch = poststr.at(i);
+
+		if(isalpha(ch))
+		{
+			cout<<"\nEnter value for"<<ch<<" :";
+			cin>>val;
+			st.push(val);
+		}
+		else if(isdigit(ch))
+		{
+			st.push(((int)ch)-48);
+		}
+		else
+		{
+			op1 = st.pop();
+			op2 = st.pop();
+			result = evaluate(ch, op1, op2);
+			st.push(result);
+		}
 	}
-	preval = st.posteval(postr);
-	return preval;
+    result = st.pop();
+    return result;
+}
+template <class T>
+int Stack<T> :: preeval(string prestr)
+{
+	Stack<int> st;
+	string poststr;
+	int result;
+
+	for(int i=0; i<prestr.length(); i++)
+		st.push(prestr.at(i));
+	while(st.isempty()!=true)
+		poststr.append(1,st.pop());
+
+	result = posteval(poststr);
+	return result;
 }
 
 int main()
 {
- 	stack <int> s1;
-	stack <char> s2;
+	Stack<int> s1;
+	Stack<char> s2;
+	int ch, temp, i, count;
+	char ch1, temp1;
 
-	int n,i,ch,x, ival, postval, preval;
-	char c,st,cval,op;
-	string instr, postr, prestr;
+	cout<<"******************STACK OPERATIONS***********************";
+	cout<<"\nMenu";
 
 	do
 	{
-		cout<<"\n\n1.Push elements on stack \n2.Display stack \n3.Pop element from stack";
-		cout<< "\n4.Stack top \n5.Infix to Postfix Conversion \n6.Postfix Evaluation";
-		cout << "\n7.Infix to Prefix Conversion\n8.Prefix Evalution\n9.Exit \n>>";
-		cin >> ch;
+		cout<<"\n1.Push\n2.Pop\n3.Display\n4.Infix to Postfix\n5.Postfix Evaluation\n6.Infix to Prefix\n7.Prefix Evaluation"
+				"\n8.Exit\n>>";
+		cin>>ch;
+
 		switch(ch)
 		{
-			case 1:
-				cout<< "\n Create stack \n a.integer stack \n b.character stack:";
-				cin >> st;
-				switch(st)
+		case 1:
+			cout<<"\nPush element in \na.Integet Stack\nb.Character stack";
+			cin>>ch1;
+			switch(ch1)
+			{
+			case 'a':
+				cout<<"How many integer elements want to push: ";
+				cin>>count;
+				cout<<"Enter "<<count<<" elements:\n ";
+				for(i=0; i<count; i++)
 				{
-					case 'a':
-						cout<<"\n How many elements you want to push onto the stack";
-						cin >> n;
-						cout<< "\n Enter the elements";
-						for(i=0; i<n; i++)
-						{
-							cin >> x;
-							s1.push(x);
-						}
-						break;
-					case 'b':
-						cout<<"\n How many elements you want to push onto the stack";
-						cin >> n;
-						cout<< "\n Enter the elements";
-						for(i=0; i<n; i++)
-						{
-							cin >> c;
-							s2.push(c);
-						}
+					cin>>temp;
+					s1.push(temp);
 				}
 				break;
-			case 2:
-				if(s1.isempty() != true)
+			case 'b':
+				cout<<"How many character elements want to push: ";
+				cin>>count;
+				cout<<"Enter "<<count<<" elements:\n ";
+				for(i=0; i<count; i++)
 				{
-					cout<<"\n Displaying integer stack: \n";
-					s1.display();
-				}
-				if(s2.isempty() != true)
-				{
-					cout<<"\n Displaying character stack: \n";
-					s2.display();
+					cin>>temp1;
+					s2.push(temp1);
 				}
 				break;
-			case 3:
-				cout<< "\n Pop element from \n a. interger stack \n b. character stack";
-				cin >> st;
-				switch(st)
+			}
+			break;
+		case 2:
+			cout<<"\npop element from \na.Integet Stack\nb.Character stack";
+			cin>>ch1;
+			switch(ch1)
+			{
+			case 'a':
+				do
 				{
-					case 'a':
-						do
-						{
-							if(s1.isempty() != true)
-							{
-								ival = s1.pop();
-								cout << "\n Popped element:" << ival;
-								cout << "\n Do you want to continue: (Y/N)";
-								cin >> op;
-							}
-							else
-							{
-								cout << "\n Integer stack is empty !!";
-								break;
-							}
-						}while(op != 'N' || op != 'n');
-						break;
-					case 'b':
-						do
-						{
-
-							if(s2.isempty() != true)
-							{
-								cval = s2.pop();
-								cout << "\n Popped element:" << cval;
-								cout << "\n Do you want to continue: (Y/N)";
-								cin >> op;
-							}
-							else
-							{
-								cout << "\n Character stack is empty ";
-								break;
-							}
-						}while(op != 'N' || op != 'n');
-						break;
-				}
+					temp = s1.pop();
+					cout<<"\nPoped Element: "<<temp;
+					cout<<"\nContinue pop (Y/N)";
+					cin>>temp1;
+				}while(temp1 == 'Y' || temp1 == 'y');
 				break;
-			case 4:
-				if(s1.isempty() != true)
+			case 'b':
+				do
 				{
-					ival = s1.stacktop();
-					cout << "\n Integer Stack Top element:" << ival;
-				}
-				else
-					cout << "\n Integer Stack is Empty !!";
-				if(s2.isempty() != true)
-				{
-					cval = s2.stacktop();
-					cout << "\n Character Stack Top element:" << cval;
-				}
-				else
-						cout << "\n Character Stack is Empty !!";
+					temp1 = s2.pop();
+					cout<<"\nPoped Element: "<<temp1;
+					cout<<"\nContinue pop (Y/N)";
+					cin>>temp1;
+				}while(temp1 == 'Y' || temp1 == 'y');
 				break;
-			case 5:
-				cout << "\n Enter an Infix Expression: ";
-				cin >> instr;
-				postr = s1.intopost(instr);
-				cout << "\n Postfix Expression: " << postr << endl;
-				break;
-			case 6:
-				cout << "\n Enter an Infix Expression: ";
-				cin >> instr;
-				postr = s1.intopost(instr);
-				cout << "\n Postfix Expression: " << postr << endl;
-				postval = s1.posteval(postr);
-				cout << "\n Result of Postfix Evaluation: " << postval;
-				break;
-			case 7:
-				cout << "\n Enter an Infix Expression: ";
-				cin >> instr;
-				prestr = s1.intopre(instr);
-				cout << "\n Prefix Expression: " << prestr << endl;
-				break;
-			case 8:
-				cout << "\n Enter an Infix Expression: ";
-				cin >> instr;
-				prestr = s1.intopre(instr);
-				cout << "\n Prefix Expression: " << prestr << endl;
-				preval = s1.preeval(prestr);
-				cout << "\n Result of Prefix Evaluation: "<<  preval <<endl;
-				break;
+			}
+			break;
+		case 3:
+			cout<<"\nInteger Stack: \n";
+			s1.display();
+			cout<<"\nCharacter Stack: ";
+			s2.display();
+			break;
+		case 4:
+			{
+				string input, output;
+				cout<<"\nEnter Infix expression: ";
+				cin>>input;
+				output = s2.intopost(input);
+				cout<<output;
+			}
+			break;
+		case 5:
+			{
+				string input, poststr;
+				int output;
+				cout<<"\nEnter Infix expression: ";
+				cin>>input;
+				poststr = s2.intopost(input);
+				cout<<"\nPostfix Expression : "<<poststr;
+				output = s2.posteval(poststr);
+				cout<<endl<<output;
+			}
+			break;
+		case 6:
+			{
+				string input, output;
+				cout<<"\nEnter Infix expression: ";
+				cin>>input;
+				output = s2.intopre(input);
+				cout<<output;
+			}
+			break;
+		case 7:
+			{
+				string input, prestr;
+				int output;
+				cout<<"\nEnter Infix expression: ";
+				cin>>input;
+				prestr = s2.intopre(input);
+				cout<<"\nPrefix Expression : "<<prestr;
+				output = s2.preeval(prestr);
+				cout<<endl<<output;
+			}
+			break;
+		case 8:
+			exit(0);
 		}
-		}while(ch!=10);
-	return 0;
+	}while(1);
+
+
 }
-
-
-
-
-
-
 
